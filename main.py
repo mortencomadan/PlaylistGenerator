@@ -1,17 +1,5 @@
 import spotify
 
-with open("bands.txt") as file:
-    lines = [line.rstrip() for line in file]
-
-song_list = []
-
-for line in lines:
-    result = spotify.find_band(line, True)
-    print(result.name, " ", result.genres, ": ", end="")
-
-    for songs in result.top_5_songs:
-        print(songs.name, ", ", end="")
-        song_list.append(songs.id)
-    print()
-
-spotify.create_playlist("ArcTanGent2023", song_list)
+artist_list = spotify.return_list_of_artists_from_playlist("6hx45zkRiMmhT3zYRzLm2B")
+song_list = spotify.get_song_list_from_artist_list(artist_list, 10)
+spotify.create_playlist("MetalDays top 10", song_list)

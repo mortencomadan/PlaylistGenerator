@@ -22,6 +22,12 @@ class Band:
         self.top_5_songs = []
 
 
+class Artist:
+    def __init__(self, id, name):
+        self.name = name
+        self.id = id
+
+
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
@@ -104,9 +110,51 @@ def find_band(name_of_band, find_top_5_songs=False):
 
 
 def create_playlist(playlist_name, song_list):
-    song_list_split = [song_list[i:i + 100] for i in range(0, len(song_list), 100)]
+    new_list = []
+    for song in song_list:
+        new_list.append(song.id)
+    song_list_split = [new_list[i:i + 100] for i in range(0, len(new_list), 100)]
     print(song_list)
     user_id = spotify.me()['id']
     playlist = spotify.user_playlist_create(user_id, playlist_name)
     for chunk in song_list_split:
         spotify.playlist_add_items(playlist["id"], chunk)
+
+
+def return_list_of_artists_from_playlist(playlistID):
+    playlist = spotify.playlist(playlistID)
+    list: list[Artist] = []
+
+    for line in playlist["tracks"]["items"]:
+        for artist in line["track"]["artists"]:
+            artist_id = artist["id"]
+            artist_name = artist["name"]
+            found = False
+            for i in range(0, len(list)):
+                if artist_id == list[i].id:
+                    found = True
+                    break
+            if not found:
+                list.append(Artist(id=artist_id, name=artist_name))
+    return list
+
+
+def get_song_list_from_artist_list(artists, number_of_songs):
+    song_list = []
+    for artist in artists:
+        list_of_songs = find_top_song(artist.id, number_of_songs)
+        for i in list_of_songs:
+            song_list.append(i)
+    return song_list
+
+
+def find_top_song(artist_id, number_of_songs):
+    uri = 'spotify:artist:' + artist_id
+    list = []
+    results = spotify.artist_top_tracks(uri)
+    for track in results['tracks'][:number_of_songs]:
+        song = Song()
+        song.id = track["id"]
+        song.name = track["name"]
+        list.append(song)
+    return list
